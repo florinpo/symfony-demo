@@ -13,6 +13,8 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\AdvancedUserInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
@@ -73,6 +75,19 @@ class User implements UserInterface, \Serializable
      */
     private $roles = [];
 
+
+    /**
+     * @ORM\ManyToMany(targetEntity="Role", inversedBy="users")
+     * @ORM\JoinTable(name="symfony_demo_user_roles")
+     *
+     */
+    private $userRoles;
+
+    public function __construct()
+    {
+        $this->userRoles = new ArrayCollection();
+    }
+
     public function getId(): int
     {
         return $this->id;
@@ -118,25 +133,25 @@ class User implements UserInterface, \Serializable
         $this->password = $password;
     }
 
-    /**
-     * Returns the roles or permissions granted to the user for security.
-     */
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-
-        // guarantees that a user always has at least one role for security
-        if (empty($roles)) {
-            $roles[] = 'ROLE_USER';
-        }
-
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): void
-    {
-        $this->roles = $roles;
-    }
+//    /**
+//     * Returns the roles or permissions granted to the user for security.
+//     */
+//    public function getRoles(): array
+//    {
+//        $roles = $this->roles;
+//
+//        // guarantees that a user always has at least one role for security
+//        if (empty($roles)) {
+//            $roles[] = 'ROLE_USER';
+//        }
+//
+//        return array_unique($roles);
+//    }
+//
+//    public function setRoles(array $roles): void
+//    {
+//        $this->roles = $roles;
+//    }
 
     /**
      * Returns the salt that was originally used to encode the password.
@@ -179,5 +194,58 @@ class User implements UserInterface, \Serializable
     {
         // add $this->salt too if you don't use Bcrypt or Argon2i
         [$this->id, $this->username, $this->password] = unserialize($serialized, ['allowed_classes' => false]);
+    }
+
+    /**
+     * Геттер для ролей пользователя.
+     *
+     * @return ArrayCollection A Doctrine ArrayCollection
+     */
+    public function getUserRoles()
+    {
+        return $this->userRoles;
+    }
+
+    /**
+     * Геттер для массива ролей.
+     *
+     * @return array An array of Role objects
+     */
+    public function getRoles()
+    {
+        return $this->getUserRoles()->toArray();
+    }
+
+    /**
+     * Add userRoles
+     *
+     * @param \App\Entity\Role $userRoles
+     * @return Users
+     */
+    public function addUserRole(\App\Entity\Role $userRoles)
+    {
+        $this->userRoles[] = $userRoles;
+
+        return $this;
+    }
+
+    /**
+     * Remove userRoles
+     *
+     * @param \App\Entity\Role $userRoles
+     */
+    public function removeUserRole(\App\Entity\Role $userRoles)
+    {
+        $this->userRoles->removeElement($userRoles);
+    }
+
+
+    public function setRole(\App\Entity\Role $role)
+    {
+        if (!$this->userRoles->contains($role)) {
+            $this->userRoles->add($role);
+        }
+
+        return $this;
     }
 }
