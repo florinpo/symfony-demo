@@ -25,12 +25,12 @@ class Kernel extends BaseKernel
 
     public function getCacheDir()
     {
-        return $this->getProjectDir().'/var/cache/'.$this->environment;
+        return '/dev/shm/symfony3-demo/cache/'.$this->environment;
     }
 
     public function getLogDir()
     {
-        return $this->getProjectDir().'/var/log';
+        return '/dev/shm/symfony3-demo/log';
     }
 
     public function registerBundles()
